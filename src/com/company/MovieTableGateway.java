@@ -1,11 +1,17 @@
-
 package com.company;
 
-import java.sql.*;
+
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 
 public class MovieTableGateway {
     private static final String TABLE_NAME = "movies";
@@ -16,11 +22,13 @@ public class MovieTableGateway {
     private static final String COLUMN_AGERATING = "ageRating";
     private static final String COLUMN_PREMIERE = "premiereDate";
     private static final String COLUMN_3D = "is3D";
-    private Connection mConnection;
+    private final Connection mConnection;
+
 
     public MovieTableGateway(Connection connection) {
         this.mConnection = connection;
     }
+
 
     public boolean insertMovie(Movie m) {
         String query = "INSERT INTO movies (runningTime, title, director, ageRating, premiereDate, is3D) VALUES (?, ?, ?, ?, ?, ?)";
@@ -44,15 +52,16 @@ public class MovieTableGateway {
         return false;
     }
 
+
     public List<Movie> getMovies() {
-        List<Movie> movies = new ArrayList();
+        List<Movie> movies = new ArrayList<Movie>();
         String query = "SELECT * FROM movies";
 
         try {
             Statement stmt = this.mConnection.createStatement();
             ResultSet rs = stmt.executeQuery(query);
 
-            while(rs.next()) {
+            while (rs.next()) {
                 int id = rs.getInt("id");
                 String title = rs.getString("title");
                 String director = rs.getString("director");
@@ -69,6 +78,7 @@ public class MovieTableGateway {
 
         return movies;
     }
+
 
     public boolean deleteMovie(int id) {
         String query = "DELETE FROM movies WHERE id= ?";
@@ -87,19 +97,21 @@ public class MovieTableGateway {
 
         return false;
     }
-    public boolean updateMovie(int id,int runningTime,String title,String director,int ageRating,String dateString, boolean is3d){
 
-        String query="UPDATE movies SET runningTime = COALESCE(?, runningTime), title = COALESCE(?,title),director = COALESCE(?,director),ageRating = COALESCE(?,ageRating),premiereDate = COALESCE(?,premiereDate),is3D = COALESCE(?,is3D) WHERE id = ?";
+
+    public boolean updateMovie(int id, int runningTime, String title, String director, int ageRating, String dateString, boolean is3d) {
+
+        String query = "UPDATE movies SET runningTime = COALESCE(?, runningTime), title = COALESCE(?,title),director = COALESCE(?,director),ageRating = COALESCE(?,ageRating),premiereDate = COALESCE(?,premiereDate),is3D = COALESCE(?,is3D) WHERE id = ?";
         try {
-            PreparedStatement stmt = this.mConnection.prepareStatement(query);;
+            PreparedStatement stmt = this.mConnection.prepareStatement(query);
 
-            stmt.setInt(1,runningTime);
-            stmt.setString(2,title);
-            stmt.setString(3,director);
-            stmt.setInt(4,ageRating);
+            stmt.setInt(1, runningTime);
+            stmt.setString(2, title);
+            stmt.setString(3, director);
+            stmt.setInt(4, ageRating);
             stmt.setDate(5, Date.valueOf(dateString));
-            stmt.setBoolean(6,is3d);
-            stmt.setInt(7,id);
+            stmt.setBoolean(6, is3d);
+            stmt.setInt(7, id);
 
             System.out.println("\n\nTHE SQL LOOKS LIKE THIS " + stmt.toString() + "\n\n");
             int numRowsAffected = stmt.executeUpdate();
@@ -111,5 +123,9 @@ public class MovieTableGateway {
         }
 
         return false;
+    }
+
+    public boolean updateMovie(Movie movie) {
+        return updateMovie(movie.getId(), movie.getRunningTime(), movie.getTitle(), movie.getDirector(), movie.getAgeRating(), movie.getPremiereDate().toString(), movie.getIs3D());
     }
 }
